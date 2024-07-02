@@ -1,5 +1,8 @@
+import mongoose from "mongoose";
 import Event from "../event/event.model";
-import Voucher from "./voucher.model";
+import Voucher, { IVoucher } from "./voucher.model";
+import { runTransactionWithRetry } from "../../utils/sessionRetry";
+import { VoucherService } from "./voucher.service";
 
 export const VoucherResolver = {
   Query: {
@@ -7,48 +10,35 @@ export const VoucherResolver = {
       const vouchers = await Voucher.find();
       return vouchers;
     },
-    voucherById: async (_: any, { id }: any) => {
-      const voucher = await Voucher.findById(id);
+    voucherById: async (_: any, { _id }: { _id: string }) => {
+      const voucher = await Voucher.findById(_id);
       return voucher;
     },
   },
 
   Mutation: {
-    createVoucher: async (_: any, { voucher }: any) => {
-      const { discount, eventId, expireAt, description } = voucher;
-      const event = await Event.findById(eventId);
-      if (!event) {
-        throw new Error("Event not found");
-      }
-      if (event.quantity === 0) {
-        throw new Error("Event is full");
-      }
-      const code = Math.random().toString(36).substring(7);
-      const newVoucher = await Voucher.create({
-        code,
-        discount,
-        eventId,
-        expireAt,
-        description,
-      });
-
-      event.quantity -= 1;
-      await event.save();
-      return newVoucher;
+    // have to setup replicaset mongodb for transaction
+    createVoucher: async (_: any, { voucher }: { voucher: IVoucher }) => {
+      const session = await mongoose.startSession();
+      await runTransactionWithRetry(VoucherService.create, session, voucher);
     },
 
-    updateVoucher: async (_: any, { voucher }: any) => {
-      const { id, code, discount, expireAt, description } = voucher;
-      const updatedVoucher = await Voucher.findByIdAndUpdate(
-        id,
-        { code, discount, expireAt, description },
-        { new: true }
-      );
+    updateVoucher: async (_: any, { voucher }: { voucher: IVoucher }) => {
+      const updatedVoucher = await VoucherService.update(voucher);
       return updatedVoucher;
     },
 
-    deleteVoucher: async (_: any, { _id }: any) => {
-      const voucher = await Voucher.findByIdAndDelete(_id);
+    deleteVoucher: async (_: any, { _id }: { _id: string }) => {
+      const voucher = await Voucher.findById(_id);
+      if (!voucher) {
+        throw new Error("Voucher not found");
+      }
+      const event = await Event.findById(voucher.eventId);
+      Voucher.deleteOne({ _id });
+      if (event) {
+        event.quantity += 1;
+        await event.save();
+      }
       return voucher;
     },
   },

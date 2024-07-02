@@ -15,6 +15,7 @@ export const VoucherTypeDef = /* GraphQL */ `
     code: String!
     discount: Float!
     eventId: ID!
+    userId: ID
     status: String!
     expireAt: String!
     description: String
@@ -23,6 +24,7 @@ export const VoucherTypeDef = /* GraphQL */ `
   input NewVoucherInput {
     discount: Float!
     eventId: ID!
+    userId: ID!
     expireAt: String!
     description: String
   }
@@ -31,7 +33,7 @@ export const VoucherTypeDef = /* GraphQL */ `
     _id: ID!
     code: String
     discount: Float
-    eventId: ID
+    userId: ID
     status: String
     expireAt: String
     description: String

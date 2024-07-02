@@ -6,6 +6,8 @@ export const EventTypeDef = /* GraphQL */ `
 
   type Mutation {
     createEvent(event: NewEventInput!): Event
+    startEdittingEvent(_id: ID!): Boolean
+    checkStillEditting(_id: ID!): Boolean
     updateEvent(event: UpdateEventInput!): Event
     deleteEvent(_id: ID!): Event
   }
@@ -17,6 +19,8 @@ export const EventTypeDef = /* GraphQL */ `
     location: String
     description: String
     quantity: Int!
+    isEditting: Boolean
+    expiredEdittingDate: String
   }
 
   input NewEventInput {

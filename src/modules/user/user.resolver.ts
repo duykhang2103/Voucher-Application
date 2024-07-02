@@ -1,5 +1,5 @@
 import { create } from "lodash";
-import User from "./user.model";
+import User, { IUser } from "./user.model";
 import {
   comparePassword,
   hashPassword,
@@ -14,18 +14,18 @@ export const UserResolver = {
       return users;
     },
     // parents, args, context, info
-    userByName: async (_: any, { name }: any) => {
+    userByName: async (_: any, { name }: { name: string }) => {
       const user = await User.findOne({ name });
       return user;
     },
 
-    userById: async (_: any, { id }: any) => {
-      const user = await User.findById(id);
+    userById: async (_: any, { _id }: { _id: string }) => {
+      const user = await User.findById(_id);
       return user;
     },
   },
   Mutation: {
-    signUp: async (_: any, { user }: any) => {
+    createUser: async (_: any, { user }: { user: IUser }) => {
       const { name, email, password } = user;
       const userExists = await User.findOne({ email });
       if (userExists) {
@@ -40,7 +40,10 @@ export const UserResolver = {
       return newUser;
     },
 
-    signIn: async (_: any, { email, password }: any) => {
+    signIn: async (
+      _: any,
+      { email, password }: { email: string; password: string }
+    ) => {
       const user = await User.findOne({
         email,
       });
@@ -60,6 +63,6 @@ export const UserResolver = {
     },
   },
   User: {
-    name: (obj: any) => obj.name.toUpperCase(),
+    name: (obj: IUser) => obj.name.toUpperCase(),
   },
 };
