@@ -22,6 +22,7 @@ export const VoucherTypeDef = /* GraphQL */ `
   }
 
   input NewVoucherInput {
+    code: String
     discount: Float!
     eventId: ID!
     userId: ID!

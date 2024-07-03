@@ -1,6 +1,7 @@
-import { Queue, Worker } from "bullmq";
+import { Job, Queue, Worker } from "bullmq";
+import { QueueService } from "../modules/queue/queue.service";
 
-const queue = new Queue("email", {
+const messageQueue = new Queue("add", {
   connection: {
     host: "localhost",
     port: 6379,
@@ -9,41 +10,51 @@ const queue = new Queue("email", {
 
 const worker1 = new Worker(
   "add",
-  async (job: any) => {
-    console.log("add: ", job.data);
+  async (job: Job) => {
+    const info = await QueueService.workAddItem(job);
+    return info;
   },
-  { connection: { host: "localhost", port: 6379 } }
+  {
+    connection: { host: "localhost", port: 6379 },
+    autorun: false,
+  }
 );
 
 const worker2 = new Worker(
   "update",
-  async (job: any) => {
-    console.log("update: ", job.data);
+  async (job: Job) => {
+    const info = await QueueService.workUpdateItem(job);
+    return info;
   },
-  { connection: { host: "localhost", port: 6379 } }
+  {
+    connection: { host: "localhost", port: 6379 },
+    autorun: false,
+  }
 );
 
 const startWorkers = async () => {
-  await worker1.waitUntilReady();
-  worker1.on("completed", (job: any) => {
+  worker1.on("completed", (job: Job) => {
     console.log(`Job completed with result ${job.returnvalue}`);
   });
   worker1.on("failed", (job: any) => {
     console.log(`Job failed with reason ${job.failedReason}`);
   });
   worker1.on("error", (error: any) => {
-    console.log(`Worker error: ${error.message}`);
+    console.log(`Worker error: ${error}`);
   });
-  await worker2.waitUntilReady();
-  worker2.on("completed", (job: any) => {
+
+  worker2.on("completed", (job: Job) => {
     console.log(`Job completed with result ${job.returnvalue}`);
   });
   worker2.on("failed", (job: any) => {
     console.log(`Job failed with reason ${job.failedReason}`);
   });
   worker2.on("error", (error: any) => {
-    console.log(`Worker error: ${error.message}`);
+    console.log(`Worker error: ${error}`);
   });
+
+  await worker1.run();
+  await worker2.run();
 };
 
-export { queue, startWorkers };
+export { messageQueue, worker1, worker2, startWorkers };

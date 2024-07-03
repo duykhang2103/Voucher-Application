@@ -3,6 +3,8 @@ import Event from "../event/event.model";
 import Voucher, { IVoucher } from "./voucher.model";
 import { runTransactionWithRetry } from "../../utils/sessionRetry";
 import { VoucherService } from "./voucher.service";
+import { QueueService } from "../queue/queue.service";
+import User from "../user/user.model";
 
 export const VoucherResolver = {
   Query: {
@@ -21,6 +23,10 @@ export const VoucherResolver = {
     createVoucher: async (_: any, { voucher }: { voucher: IVoucher }) => {
       const session = await mongoose.startSession();
       await runTransactionWithRetry(VoucherService.create, session, voucher);
+      const user = await User.findById(voucher.userId);
+      if (user && user.email && voucher.code)
+        QueueService.addItem({ email: user.email, code: voucher.code });
+      // TODO: cant return voucher
     },
 
     updateVoucher: async (_: any, { voucher }: { voucher: IVoucher }) => {

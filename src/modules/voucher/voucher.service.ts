@@ -6,7 +6,7 @@ import Voucher, { IVoucher } from "./voucher.model";
 const create = async (voucher: IVoucher, session: mongoose.ClientSession) => {
   session.startTransaction();
 
-  const { discount, eventId, userId, expireAt } = voucher;
+  const { code, discount, eventId, userId, expireAt } = voucher;
   const event = await Event.findById(eventId);
   if (!event) {
     throw new Error("Event not found");
@@ -14,11 +14,11 @@ const create = async (voucher: IVoucher, session: mongoose.ClientSession) => {
   if (event.quantity === 0) {
     throw new Error("Event is full");
   }
-  const code = Math.random().toString(36).substring(7);
+  const newCode = code ? code : Math.random().toString(36).substring(7);
   const newVoucher = await Voucher.create(
     [
       {
-        code,
+        code: newCode,
         discount,
         eventId,
         userId,

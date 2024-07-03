@@ -12,4 +12,10 @@ const start = async () => {
   });
 };
 
+process.on("unhandledRejection", (err) => {
+  console.log("UNHANDLED REJECTION!, ", err);
+  console.log("UNHANDLED REJECTION! Shutting down...");
+  process.exit(1);
+});
+
 start();

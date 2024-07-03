@@ -19,7 +19,7 @@ app.use(
   swaggerUi.setup(swaggerJsdoc(swaggerOptions))
 );
 
-const yoga = createYoga({
+export const yoga = createYoga({
   schema: schema,
 });
 

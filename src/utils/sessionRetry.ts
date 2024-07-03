@@ -6,9 +6,10 @@ export const runTransactionWithRetry = async (
   data: any
 ) => {
   try {
-    console.log("Starting transaction ...");
-    await txnFunc(data, session);
-    console.log("Transaction succeeded.");
+    // console.log("Starting transaction ...");
+    const res = await txnFunc(data, session);
+    // console.log("Transaction succeeded.");
+    return res;
   } catch (error: any) {
     console.log(
       "Transaction aborted. Caught exception during transaction: ",
@@ -29,10 +30,10 @@ export const commitWithRetry = async (
   session: mongoose.mongo.ClientSession
 ) => {
   try {
-    console.log("Committing transaction ...");
+    // console.log("Committing transaction ...");
     await session.commitTransaction();
     session.endSession();
-    console.log("Transaction committed.");
+    // console.log("Transaction committed.");
   } catch (error: unknown) {
     console.log("Error during commit ...");
     throw error;
