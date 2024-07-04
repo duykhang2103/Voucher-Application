@@ -18,6 +18,6 @@ export const genToken = async (data: any, expire: number = 100) => {
   return token;
 };
 
-export const checkToken = async (token: string) => {
+export const verifyToken = async (token: string) => {
   return jwt.verify(token, JWT_SECRET);
 };

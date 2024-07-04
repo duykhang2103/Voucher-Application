@@ -29,15 +29,23 @@ describe("Users", () => {
 
   it("should return user having name khang", async () => {
     const query = `
-      query {
-        userByName (name: "khang") {
+      query GetUserByName($name: String!){
+        userByName (name: $name) {
           _id
           name
           email
         }
       }
     `;
-    const result = await graphql({ schema, source: query });
+    const variables = {
+      name: "khang",
+    };
+
+    const result = await graphql({
+      schema,
+      source: query,
+      variableValues: variables,
+    });
     expect(result.data).toBeDefined();
     expect((result.data!.userByName as jest.Mock).name).toEqual("KHANG");
   });

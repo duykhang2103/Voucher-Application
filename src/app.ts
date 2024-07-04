@@ -3,10 +3,11 @@ import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 import { swaggerOptions } from "./config/swagger";
 import { ruruHTML } from "ruru/server";
-import { createSchema, createYoga } from "graphql-yoga";
+import { createYoga } from "graphql-yoga";
 import { schema } from "./schema";
 import corsMiddleware from "./middlewares/cors";
 import { applyMiddleware } from "graphql-middleware";
+import permissions from "./guard/auth";
 
 const app = express();
 
@@ -19,8 +20,10 @@ app.use(
   swaggerUi.setup(swaggerJsdoc(swaggerOptions))
 );
 
+const schemaWithMiddleware = applyMiddleware(schema, permissions);
+
 export const yoga = createYoga({
-  schema: schema,
+  schema: schemaWithMiddleware,
 });
 
 app.all("/graphql", yoga);

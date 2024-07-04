@@ -1,11 +1,5 @@
-import { create } from "lodash";
 import User, { IUser } from "./user.model";
-import {
-  comparePassword,
-  hashPassword,
-  genToken,
-  checkToken,
-} from "../../config/auth";
+import { UserService } from "./user.service";
 
 export const UserResolver = {
   Query: {
@@ -26,17 +20,7 @@ export const UserResolver = {
   },
   Mutation: {
     createUser: async (_: any, { user }: { user: IUser }) => {
-      const { name, email, password } = user;
-      const userExists = await User.findOne({ email });
-      if (userExists) {
-        throw new Error("User already exists");
-      }
-      const hashedPassword = await hashPassword(password);
-      const newUser = await User.create({
-        name,
-        email,
-        password: hashedPassword,
-      });
+      const newUser = await UserService.create(user);
       return newUser;
     },
 
@@ -44,22 +28,19 @@ export const UserResolver = {
       _: any,
       { email, password }: { email: string; password: string }
     ) => {
-      const user = await User.findOne({
-        email,
-      });
-
-      if (!user) {
-        throw new Error("User not found");
-      }
-
-      const isMatch = await comparePassword(password, user.password);
-      if (!isMatch) {
-        throw new Error("Invalid credentials");
-      }
-
-      const token = await genToken(user);
-
+      const token = await UserService.signIn(email, password);
       return token;
+    },
+
+    useVoucher: async (
+      _: any,
+      { code, eventId }: { code: string; eventId: string },
+      ctx: any
+    ) => {
+      const userId = ctx.userId;
+      console.log(userId);
+      const voucher = await UserService.useVoucher(code, userId, eventId);
+      return voucher;
     },
   },
   User: {

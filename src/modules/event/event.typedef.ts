@@ -2,6 +2,7 @@ export const EventTypeDef = /* GraphQL */ `
   type Query {
     events: [Event!]!
     eventById(_id: ID!): Event
+    eventByName(name: String!): Event
   }
 
   type Mutation {

@@ -1,4 +1,5 @@
 import Event, { IEvent } from "./event.model";
+import { EventService } from "./event.service";
 
 export const EventResolver = {
   Query: {
@@ -10,69 +11,30 @@ export const EventResolver = {
       const event = await Event.findById(_id);
       return event;
     },
+    eventByName: async (_: any, { name }: { name: string }) => {
+      const event = await Event.findOne({ name });
+      return event;
+    },
   },
 
   Mutation: {
     createEvent: async (_: any, { event }: { event: IEvent }) => {
-      const { name, date, location, description, quantity } = event;
-
-      const newEvent = await Event.create({
-        name,
-        date,
-        location,
-        description,
-        quantity,
-      });
+      const newEvent = await EventService.create(event);
       return newEvent;
     },
 
     startEdittingEvent: async (_: any, { _id }: { _id: string }) => {
-      const eventExists = await Event.findById(_id);
-      if (!eventExists) {
-        throw new Error("Event not found");
-      }
-      if (eventExists.isEditting) {
-        throw new Error("Event is being edited");
-      }
-      eventExists.isEditting = true;
-      eventExists.expiredEdittingDate = new Date(Date.now() + 60000 * 5); // 5 minute
-      await eventExists.save();
-      return true;
+      const isAbleToEdit = await EventService.startEditting(_id);
+      return isAbleToEdit;
     },
 
     checkStillEditting: async (_: any, { _id }: { _id: string }) => {
-      const eventExists = await Event.findById(_id);
-      if (!eventExists) {
-        throw new Error("Event not found");
-      }
-      if (
-        eventExists.expiredEdittingDate &&
-        eventExists.expiredEdittingDate < new Date()
-      ) {
-        eventExists.isEditting = false;
-        await eventExists.save();
-        return false;
-      } else {
-        eventExists.expiredEdittingDate = new Date(Date.now() + 60000 * 5); // 5 minute
-        await eventExists.save();
-        return true;
-      }
+      const isStillEditting = await EventService.checkStillEditting(_id);
+      return isStillEditting;
     },
 
     updateEvent: async (_: any, { event }: { event: IEvent }) => {
-      const { _id, name, date, location, description, quantity } = event;
-      const eventExists = await Event.findById(_id);
-      if (!eventExists) {
-        throw new Error("Event not found");
-      }
-      if (!eventExists.isEditting) {
-        throw new Error("Your session is expired");
-      }
-      const updatedEvent = await Event.findByIdAndUpdate(
-        _id,
-        { name, date, location, description, quantity, isEditting: false },
-        { new: true }
-      );
+      const updatedEvent = await EventService.update(event);
       return updatedEvent;
     },
   },

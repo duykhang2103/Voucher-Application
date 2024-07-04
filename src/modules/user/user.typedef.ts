@@ -7,7 +7,8 @@ export const UserTypeDef = /* GraphQL */ `
 
   type Mutation {
     createUser(user: NewUserInput!): User
-    signIn(email: String!, password: String!): User
+    signIn(email: String!, password: String!): String
+    useVoucher(code: String!, eventId: ID!): Voucher
   }
 
   type User {

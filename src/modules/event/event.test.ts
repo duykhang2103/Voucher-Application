@@ -25,6 +25,29 @@ describe("Events", () => {
     expect(result.data).toBeDefined();
     expect((result.data!.events as jest.Mock).length).toBeGreaterThan(0);
   });
+
+  it("should return event having name event1", async () => {
+    const query = `
+      query GetEventByName($name: String!){
+        eventByName (name: $name) {
+          _id
+          name
+          date
+        }
+      }
+    `;
+    const variables = {
+      name: "event1",
+    };
+
+    const result = await graphql({
+      schema,
+      source: query,
+      variableValues: variables,
+    });
+    expect(result.data).toBeDefined();
+    expect((result.data!.eventByName as jest.Mock).name).toEqual("event1");
+  });
 });
 
 afterAll(async () => {
